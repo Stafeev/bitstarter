@@ -25,7 +25,9 @@ var fs = require('fs');
 var program = require('commander');
 var cheerio = require('cheerio');
 var HTMLFILE_DEFAULT = "index.html";
+var URL_DEFAULT = "http://secret-journey-4516.herokuapp.com/";
 var CHECKSFILE_DEFAULT = "checks.json";
+var rest = require('restler');
 
 var assertFileExists = function(infile) {
     var instr = infile.toString();
@@ -65,11 +67,22 @@ var clone = function(fn) {
     return fn.bind({});
 };
 
+var checkURL = function(URL_DEFAULT) {
+   rest.get(URL_DEFAULT).on('complete', function(result) {
+        if (result instanceof Error) {
+        sys.puts('Error: ' + result.message);
+        this.retry(5000); // try again after 5 sec
+        } else {
+        sys.puts(result);
+         }
+    });
+}
+
 if(require.main == module) {
     program
         .option('-c, --checks <check_file>', 'Path to checks.json', clone(assertFileExists), CHECKSFILE_DEFAULT)
-        .option('-f, --file ', 'Path to index.html', clone(assertFileExists), HTMLFILE_DEFAULT)
-        .option('-u, --url ', 'URL of page')
+        .option('-f, --file <html_file>', 'Path to index.html', clone(assertFileExists), HTMLFILE_DEFAULT)
+        .option('-u, --url ', 'Path to url', clone(checkURL), URL_DEFAULT)
         .parse(process.argv);
     // program.url contains the url of the page. Download the page content                                                                           
     // to bitstarter.html file.                                                                                                                      
